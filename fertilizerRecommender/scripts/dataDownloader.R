@@ -91,6 +91,7 @@ if (dataDownload == TRUE){
     print("\nRetrieving weather data...\n")
     # retrieve weather data
     for (i in 1:nrow(carobCleaned)) {
+        cat(sprintf("Currently at row: %d of %d", i, nrow(carobCleaned)))
         # pick the current row year, latitude, longitude values
         rowValues <- carobCleaned[i, colValues]
         year <- rowValues[[1]]
