@@ -10,6 +10,9 @@ The climate-smart fertilizer recommender script is developed using R programming
 - `ggplot2`: for data visualization
 - `mice`: for multivariate imputation by chained equations
 - `leaflet`: for spatial data visualization
+- `nasapower`: to download rainfall and temperature data from NASA POWER
+- `elevatr`: to retrieve elevation data from SRTM
+- 'ncdf4`: for reading and extracting soil texture data from netCDF file 
 
 Using these packages, the script can process large datasets, handle missing data, and generate precise fertilizer recommendations that consider site-specific environmental and geographic conditions. 
 
