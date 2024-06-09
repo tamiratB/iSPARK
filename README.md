@@ -27,3 +27,42 @@ The `eda.R` script performs exploratory data analysis and generates plots. It sh
 
 To test this script, download the Carob dataset, extract it into the 'data' directory along with the soil texture data, and run the main script.
 
+# Sample output
+The following is the sample fertilizer recommendation ouput for few locations from Carob dataset.
+| Location                | N   | P  | K  |
+|-------------------------|-----|----|----|
+| Zaria                   | 155 | 60 | 25 |
+| IITA, Ibadan            |  55 | 20 | 55 |
+| University Farm, Nsukka | 130 | 20 |  0 |
+| Ibadan                  | 170 | 25 |  0 |
+| Iburu                   | 155 | 65 | 25 |
+| unknownSite14           | 140 | 65 | 80 |
+| unknownSite22           | 130 | 20 | 80 |
+| unknownSite38           | 130 | 20 | 80 |
+| unknownSite42           | 130 | 20 | 70 |
+| unknownSite278          |  70 | 15 | 20 |
+| unknownSite287          | 185 | 65 | 25 |
+| unknownSite288          |  10 | 15 | 25 |
+| unknownSite289          |  85 | 55 | 25 |
+| unknownSite290          |  70 | 65 | 25 |
+| unknownSite317          |  60 | 25 |  0 |
+| unknownSite322          | 155 | 65 | 30 |
+| unknownSite325          | 170 | 15 | 80 |
+| unknownSite326          | 170 | 50 | 80 |
+| unknownSite327          | 165 | 65 | 25 |
+| unknownSite328          | 170 | 15 | 80 |
+| unknownSite330          | 155 | 15 | 80 |
+| unknownSite359          | 140 | 25 | 55 |
+| unknownSite361          | 170 | 25 | 20 |
+| unknownSite379          |  80 | 65 | 80 |
+| unknownSite388          |  75 | 15 | 25 |
+| unknownSite389          | 170 | 15 | 25 |
+| unknownSite390          |  80 | 15 | 80 |
+| unknownSite408          |  55 | 65 |  0 |
+| unknownSite427          |  75 | 15 |  0 |
+| unknownSite428          |  75 | 15 | 25 |
+| unknownSite431          |  75 | 15 | 20 |
+| unknownSite450          |  80 | 65 | 80 |
+| unknownSite456          | 170 | 15 | 25 |
+| unknownSite481          | 100 | 65 | 80 |
+| Umudike                 | 155 |  5 | 55 |
