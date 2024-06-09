@@ -19,7 +19,7 @@ setwd(scriptDir)
 # download weather and elevation dataset
 # if you already downloaded the dataset, make sure you need to re-download? This is expensive
 # operation and time consuming.
-dataDownload = TRUE
+dataDownload = FALSE
 
 # -------------------------- main script starts here ---------------------------
 
@@ -109,13 +109,12 @@ if(dataDownload == TRUE){
     carobCleaned <- complete(tmp)  # complete imputed dataset
     
     # extract a unique site's 'latitude' and 'longitude' for elevation and soil type extraction
-    tmp <- c("site", "siteId", "latitude", "longitude")
-    
+    tmp <- c("site", "year", "siteId", "latitude", "longitude")
+   
     # save single record per site
     siteData <- carobCleaned %>%
       select(all_of(tmp)) %>%
       distinct(siteId, .keep_all = TRUE)
-    
 }
 
 # integrate weather, elevation, and soil type data into Carob dataset
@@ -125,6 +124,10 @@ source("dataDownloader.R")
 tmp <- mice(carobCleaned, m = 15)  # create mice object with 15 imputations
 carobCleaned <- complete(tmp)      # complete imputed dataset
 
+# clean any record remains with NAs or empty strings 
+# some records have wrong latitude and longitude like lat=3.43, lon=6.45, it is in the Atlantic ocean
+carobCleaned <- na.omit(carobCleaned)
+
 # ------------------ check the resulting integrated dataset --------------------
 tmp <- c("site", "N_fertilizer", "P_fertilizer", "K_fertilizer", "year", "yield", "yield_part", "t2m", "prec", "elevation", "soil_type")
 
@@ -133,18 +136,27 @@ siteData <- carobCleaned %>%
   select(all_of(tmp)) %>%
   distinct(site, .keep_all = TRUE)
 
-# print the resulting dataframe
+# printout the integrated data
 print(siteData)
+
 # ----- the carobCleaned data should be complete and clean at this point -------
 
 # ==================== building a predictive model =============================
 
+# reduce the number of categories in 'site' column, random forest does not handle more than 53 categories
+# count each category
+numCounts <- table(carobCleaned$site)
+# keep categories with more than 30 occurrences
+threshold <- 25
+# create a new variable where infrequent categories are labeled as 'Others'
+carobCleaned$reducedSites <- ifelse(numCounts[carobCleaned$site] > threshold, as.character(carobCleaned$site), "Others")
 # cast required data columns as factor to allow the model to learn region-specific effects (soil variations such as 'soil_type')
-carobCleaned$site <- as.factor(carobCleaned$site)
+# and use 'reducedSites'
+carobCleaned$reducedSites <- factor(carobCleaned$reducedSites)
 carobCleaned$soil_type <- as.factor(carobCleaned$soil_type)
 
 # build a 'random forest' model using the whole dataset
-model <- randomForest(yield ~ site + elevation + N_fertilizer + P_fertilizer + K_fertilizer + soil_type + t2m + prec, data = carobCleaned, importance = TRUE)
+model <- randomForest(yield ~ reducedSites + elevation + N_fertilizer + P_fertilizer + K_fertilizer + soil_type + t2m + prec, data = carobCleaned, importance = TRUE)
 #print(model)
 
 # ------------------ model validation (cross-validation) -----------------------
@@ -155,7 +167,7 @@ trainData <- carobCleaned[trainIndex, ]
 testData <- carobCleaned[-trainIndex, ]
 
 # fit model on training data
-valModel <- randomForest(yield ~ site + elevation + N_fertilizer + P_fertilizer + K_fertilizer + soil_type + t2m + prec, data = trainData)
+valModel <- randomForest(yield ~ reducedSites + elevation + N_fertilizer + P_fertilizer + K_fertilizer + soil_type + t2m + prec, data = trainData)
 
 # predict on test data
 predictions <- predict(valModel, newdata = testData)
@@ -166,29 +178,26 @@ rmse <- sqrt(mean((testData$yield - predictions)^2))
 
 # ==================== site specific recommendations ===========================
 
-# a list to collect 'site' predicted yields for later use
-sitesPredictedYeild <- list()
+# select unique names from 'reducedSites' and remove 'Others' since it belongs to many locations
+siteNames <- carobCleaned %>% distinct(reducedSites) %>% filter((reducedSites != "Others"))
+siteNames <- as.character(siteNames$reducedSites)
 
-# collect site names from 'Carob' dataset
-siteNames <- c("University Farm, Ibadan","FOC University of Nigeria, Nsukka","IITA, Ibadan","University Farm, Nsukka",
-               "Akure","Ado-Ekiti","Owerri","Abeokuta","Iburu"#,"Ibadan","Umudike","Unknown","Zaria"
-               )
 # calculate site specific NPK rates by varying one fertilizer while keeping the other two their mean values, and 
 # find the optimal value for each fertilizer at specific site
 for (i in 1:length(siteNames)){
     # filter data for a specific region
-    specificRegionData <- subset(carobCleaned, site == siteNames[i])
-    
+    specificRegionData <- subset(carobCleaned, reducedSites == siteNames[i])
+    iterLength <- seq(0, 200, by = 5)
     # calculate optimal N for the specific region
     simulatedData <- data.frame(
-      N_fertilizer = seq(0, 200, by = 5),
-      P_fertilizer = mean(specificRegionData$P_fertilizer),
-      K_fertilizer = mean(specificRegionData$K_fertilizer),
-      rainfall = mean(specificRegionData$rainfall),
-      temperature = mean(specificRegionData$temperature),
-      soil_type = unique(specificRegionData$soil_type),
-      elevation = unique(specificRegionData$elevation),
-      site = factor(siteNames[i], levels = levels(carobCleaned$site))
+      N_fertilizer = iterLength,
+      P_fertilizer = rep(mean(specificRegionData$P_fertilizer),length(iterLength)),
+      K_fertilizer = rep(mean(specificRegionData$K_fertilizer),length(iterLength)),
+      prec = rep(mean(specificRegionData$prec),length(iterLength)),
+      t2m = rep(mean(specificRegionData$t2m),length(iterLength)),
+      soil_type = rep(unique(specificRegionData$soil_type),length(iterLength)),
+      elevation = rep(unique(specificRegionData$elevation),length(iterLength)),
+      reducedSites = rep(factor(siteNames[i], levels = levels(carobCleaned$reducedSites)),length(iterLength))
     )
     # predict yield for specified region with 'simulatedData' that created by varying N levels
     simulatedData$predictedYield <- predict(model, newdata = simulatedData)
@@ -197,14 +206,14 @@ for (i in 1:length(siteNames)){
     
     # calculate optimal P for the specific region
     simulatedData <- data.frame(
-      P_fertilizer = seq(0, 200, by = 5),
-      N_fertilizer = mean(specificRegionData$N_fertilizer),
-      K_fertilizer = mean(specificRegionData$K_fertilizer),
-      rainfall = mean(specificRegionData$rainfall),
-      temperature = mean(specificRegionData$temperature),
-      soil_type = unique(specificRegionData$soil_type),
-      elevation = unique(specificRegionData$elevation),
-      site = factor(siteNames[i], levels = levels(carobCleaned$site))
+      P_fertilizer = iterLength,
+      N_fertilizer = rep(mean(specificRegionData$N_fertilizer),length(iterLength)),
+      K_fertilizer = rep(mean(specificRegionData$K_fertilizer),length(iterLength)),
+      prec = rep(mean(specificRegionData$prec),length(iterLength)),
+      t2m = rep(mean(specificRegionData$t2m),length(iterLength)),
+      soil_type = rep(unique(specificRegionData$soil_type),length(iterLength)),
+      elevation = rep(unique(specificRegionData$elevation),length(iterLength)),
+      reducedSites = rep(factor(siteNames[i], levels = levels(carobCleaned$reducedSites)),length(iterLength))
     )
     # predict yield for specified region with 'simulatedData' that created by varying P levels
     simulatedData$predictedYield <- predict(model, newdata = simulatedData)
@@ -213,14 +222,14 @@ for (i in 1:length(siteNames)){
     
     # calculate optimal K for the specific region
     simulatedData <- data.frame(
-      K_fertilizer = seq(0, 200, by = 5),
-      P_fertilizer = mean(specificRegionData$P_fertilizer),
-      N_fertilizer = mean(specificRegionData$N_fertilizer),
-      rainfall = mean(specificRegionData$rainfall),
-      temperature = mean(specificRegionData$temperature),
-      soil_type = unique(specificRegionData$soil_type),
-      elevation = unique(specificRegionData$elevation),
-      site = factor(siteNames[i], levels = levels(carobCleaned$site))
+      K_fertilizer = iterLength,
+      P_fertilizer = rep(mean(specificRegionData$P_fertilizer),length(iterLength)),
+      N_fertilizer = rep(mean(specificRegionData$N_fertilizer),length(iterLength)),
+      prec = rep(mean(specificRegionData$prec),length(iterLength)),
+      t2m = rep(mean(specificRegionData$t2m),length(iterLength)),
+      soil_type = rep(unique(specificRegionData$soil_type),length(iterLength)),
+      elevation = rep(unique(specificRegionData$elevation),length(iterLength)),
+      reducedSites = rep(factor(siteNames[i], levels = levels(carobCleaned$reducedSites)),length(iterLength))
     )
     # predict yield for specified region with 'simulatedData' that created by varying K levels
     simulatedData$predictedYield <- predict(model, newdata = simulatedData)
@@ -229,4 +238,4 @@ for (i in 1:length(siteNames)){
     
     # print out optimal NPK for the specified site
     cat(sprintf("Optimal NPK rates for %33s is: N = %3d, P = %3d, K = %3d", siteNames[i], optimalN, optimalP, optimalK), "\n")
-  }
+}
