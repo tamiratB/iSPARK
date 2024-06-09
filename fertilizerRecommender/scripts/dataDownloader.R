@@ -9,14 +9,14 @@ if (dataDownload == TRUE){
     # set timeout period for longer to slow connections
     httr::set_config(config(timeout = 120)) # timeout to 120 seconds
     
-    print("\nSit back and relax; this may take some time depending on the size of your data.\n")
+    print("Sit back and relax; this may take some time depending on the size of your data.")
     
     # initialize columns for 't2m', 'prec', 'elevation', and 'soil_type'
-    carobCleaned$t2m <- NA
-    carobCleaned$prec <- NA
-    carobCleaned$elevation <- NA
-    carobCleaned$soil_type <- ""
-    
+    carobCleaned$t2m <- NA_real_
+    carobCleaned$prec <- NA_real_
+    carobCleaned$elevation <- NA_real_
+    carobCleaned$soil_type <- NA_character_
+
     # column values needed to extract weather, elevation, and soil type data
     colValues <- c("year", "latitude","longitude")
     
@@ -37,20 +37,20 @@ if (dataDownload == TRUE){
     )
     
     # retrieve elevation and soil type data
-    print("\nRetrieving elevation data...\n")
+    print("Retrieving elevation data...")
     for (i in 1:nrow(siteData)) {
         # pick the current row latitude and longitude values
-        rowValues <- carobCleaned[i, colValues]
+        rowValues <- siteData[i, colValues]
         lat <- rowValues[[2]]
         lon <- rowValues[[3]]
         
         # ---------------retrieve elevation data from SRTM -------------------------
         coords <- data.frame(x = lat, y = lon)
         srtmElev <- get_elev_point(locations = coords, prj = "+proj=longlat +datum=WGS84", src = "aws")
-        
+
         # assign the elevation to all records at this latitude and longitude
         carobCleaned$elevation[carobCleaned$latitude == lat & carobCleaned$longitude == lon] <- srtmElev$elevation
-        
+
         # ---------------- extract soil texture data -------------------------------
         # search the closest grid point in the soil texture data
         latIdx <- which.min(abs(latitudes - lat))
@@ -63,7 +63,7 @@ if (dataDownload == TRUE){
         # insert soil type data into carobCleaned
         carobCleaned$soil_type[carobCleaned$latitude == lat & carobCleaned$longitude == lon] <- soilType
     }
-    print("\nElevation data downloading completed!\n")
+    print("Elevation data downloading completed!")
     
     #------------------ function to retrieve weather data-------------------------
     getClimData <- function(year, latitude, longitude) {
@@ -88,7 +88,7 @@ if (dataDownload == TRUE){
     season <- c("MAY", "JUN", "JUL", "AUG", "SEP", "OCT")
     # number of days in each month (used to convert precipitation data into 'mm' of the season, it is given in 'mm/day' from NASA POWER)
     numDays <- c(MAY=31, JUN=30, JUL=31, AUG=31, SEP=30, OCT=31)
-    print("\nRetrieving weather data...\n")
+    print("Retrieving weather data...")
     # retrieve weather data
     for (i in 1:nrow(carobCleaned)) {
         cat(sprintf("Currently at row: %d of %d", i, nrow(carobCleaned)))
@@ -121,7 +121,7 @@ if (dataDownload == TRUE){
         carobCleaned$prec[carobCleaned$year == year & carobCleaned$latitude == lat & carobCleaned$longitude == lon] <- 
           prec$weightedSumPrec[prec$YEAR == year & prec$PARAMETER == 'PRECTOTCORR']
     }
-    print("\nWeather data downloading completed!\n")
+    print("Weather data downloading completed!")
     # this is expensive operation, save data for later use
     saveRDS(carobCleaned, file="../data/carobCleaned.rds")
   
