@@ -29,14 +29,13 @@ To test this script, download the Carob dataset, extract it into the 'data' dire
 
 # Sample output
 The following is the sample fertilizer recommendation output for few locations from Carob dataset.
-<div class="center-table">
-| Sites                   | N   | P  | K  |
+| Sites                                 | N   | P  | K  |
 |-------------------------|-----|----|----|
-| Zaria                   | 155 | 60 | 25 |
-| IITA, Ibadan            |  55 | 20 | 55 |
+| Zaria                                 | 155 | 60 | 25 |
+| IITA, Ibadan                      |  55 | 20 | 55 |
 | University Farm, Nsukka | 130 | 20 |  0 |
-| Ibadan                  | 170 | 25 |  0 |
-| Iburu                   | 155 | 65 | 25 |
+| Ibadan                              | 170 | 25 |  0 |
+| Iburu                                 | 155 | 65 | 25 |
 | unknownSite14           | 140 | 65 | 80 |
 | unknownSite22           | 130 | 20 | 80 |
 | unknownSite38           | 130 | 20 | 80 |
@@ -67,4 +66,3 @@ The following is the sample fertilizer recommendation output for few locations f
 | unknownSite456          | 170 | 15 | 25 |
 | unknownSite481          | 100 | 65 | 80 |
 | Umudike                 | 155 |  5 | 55 |
-</div>
