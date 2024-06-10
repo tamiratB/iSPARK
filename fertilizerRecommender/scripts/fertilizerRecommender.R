@@ -184,58 +184,48 @@ siteNames <- as.character(siteNames$reducedSites)
 
 # calculate site specific NPK rates by varying one fertilizer while keeping the other two their mean values, and 
 # find the optimal value for each fertilizer at specific site
+fertilizers <- c("N_fertilizer","P_fertilizer","K_fertilizer")
+iterLength <- seq(0, 200, by = 5)
+
 for (i in 1:length(siteNames)){
     # filter data for a specific region
     specificRegionData <- subset(carobCleaned, reducedSites == siteNames[i])
-    iterLength <- seq(0, 200, by = 5)
-    # calculate optimal N for the specific region
-    simulatedData <- data.frame(
-      N_fertilizer = iterLength,
-      P_fertilizer = rep(mean(specificRegionData$P_fertilizer),length(iterLength)),
-      K_fertilizer = rep(mean(specificRegionData$K_fertilizer),length(iterLength)),
-      prec = rep(mean(specificRegionData$prec),length(iterLength)),
-      t2m = rep(mean(specificRegionData$t2m),length(iterLength)),
-      soil_type = rep(unique(specificRegionData$soil_type),length(iterLength)),
-      elevation = rep(unique(specificRegionData$elevation),length(iterLength)),
-      reducedSites = rep(factor(siteNames[i], levels = levels(carobCleaned$reducedSites)),length(iterLength))
-    )
-    # predict yield for specified region with 'simulatedData' that created by varying N levels
-    simulatedData$predictedYield <- predict(model, newdata = simulatedData)
-    # find optimal N rates for the specified region
-    optimalN <- simulatedData$N_fertilizer[which.max(simulatedData$predictedYield)]
-    
-    # calculate optimal P for the specific region
-    simulatedData <- data.frame(
-      P_fertilizer = iterLength,
-      N_fertilizer = rep(mean(specificRegionData$N_fertilizer),length(iterLength)),
-      K_fertilizer = rep(mean(specificRegionData$K_fertilizer),length(iterLength)),
-      prec = rep(mean(specificRegionData$prec),length(iterLength)),
-      t2m = rep(mean(specificRegionData$t2m),length(iterLength)),
-      soil_type = rep(unique(specificRegionData$soil_type),length(iterLength)),
-      elevation = rep(unique(specificRegionData$elevation),length(iterLength)),
-      reducedSites = rep(factor(siteNames[i], levels = levels(carobCleaned$reducedSites)),length(iterLength))
-    )
-    # predict yield for specified region with 'simulatedData' that created by varying P levels
-    simulatedData$predictedYield <- predict(model, newdata = simulatedData)
-    # find optimal P rates for the specified region
-    optimalP <- simulatedData$P_fertilizer[which.max(simulatedData$predictedYield)]
-    
-    # calculate optimal K for the specific region
-    simulatedData <- data.frame(
-      K_fertilizer = iterLength,
-      P_fertilizer = rep(mean(specificRegionData$P_fertilizer),length(iterLength)),
-      N_fertilizer = rep(mean(specificRegionData$N_fertilizer),length(iterLength)),
-      prec = rep(mean(specificRegionData$prec),length(iterLength)),
-      t2m = rep(mean(specificRegionData$t2m),length(iterLength)),
-      soil_type = rep(unique(specificRegionData$soil_type),length(iterLength)),
-      elevation = rep(unique(specificRegionData$elevation),length(iterLength)),
-      reducedSites = rep(factor(siteNames[i], levels = levels(carobCleaned$reducedSites)),length(iterLength))
-    )
-    # predict yield for specified region with 'simulatedData' that created by varying K levels
-    simulatedData$predictedYield <- predict(model, newdata = simulatedData)
-    # find optimal K rates for the specified region
-    optimalK <- simulatedData$K_fertilizer[which.max(simulatedData$predictedYield)]
-    
+    for (vars in fertilizers){ 
+        if (vars == "N_fertilizer"){
+            N = iterLength
+            P = rep(mean(specificRegionData$P_fertilizer),length(iterLength))
+            K = rep(mean(specificRegionData$K_fertilizer),length(iterLength))
+        }else if(vars == "P_fertilizer"){
+            P = iterLength
+            N = rep(mean(specificRegionData$N_fertilizer),length(iterLength))
+            K = rep(mean(specificRegionData$K_fertilizer),length(iterLength))
+        } else{
+            K = iterLength
+            P = rep(mean(specificRegionData$P_fertilizer),length(iterLength))
+            N = rep(mean(specificRegionData$N_fertilizer),length(iterLength))
+        }
+        # calculate optimal N, P, and K for the specific region
+        simulatedData <- data.frame(
+          N_fertilizer = N,
+          P_fertilizer = P,
+          K_fertilizer = K,
+          prec = rep(mean(specificRegionData$prec),length(iterLength)),
+          t2m = rep(mean(specificRegionData$t2m),length(iterLength)),
+          soil_type = rep(unique(specificRegionData$soil_type),length(iterLength)),
+          elevation = rep(unique(specificRegionData$elevation),length(iterLength)),
+          reducedSites = rep(factor(siteNames[i], levels = levels(carobCleaned$reducedSites)),length(iterLength))
+        )
+        # predict yield for specified region with 'simulatedData' 
+        simulatedData$predictedYield <- predict(model, newdata = simulatedData)
+        # find optimal N, P, and K rates for the specified region
+        if (vars == "N_fertilizer"){
+          optimalN <- simulatedData$N_fertilizer[which.max(simulatedData$predictedYield)]
+        }else if(vars == "P_fertilizer"){
+          optimalP <- simulatedData$P_fertilizer[which.max(simulatedData$predictedYield)]
+        } else{
+          optimalK <- simulatedData$K_fertilizer[which.max(simulatedData$predictedYield)]
+        }
+    }
     # print out optimal NPK for the specified site
     cat(sprintf("Optimal NPK rates for %33s is: N = %3d, P = %3d, K = %3d", siteNames[i], optimalN, optimalP, optimalK), "\n")
 }
