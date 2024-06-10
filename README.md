@@ -28,10 +28,8 @@ The `eda.R` script performs exploratory data analysis and generates plots. It sh
 To test this script, download the Carob dataset, extract it into the 'data' directory along with the soil texture data, and run the main script.
 
 # Sample output
-The following is the sample fertilizer recommendation ouput for few locations from Carob dataset.
+The following is the sample fertilizer recommendation output for few locations from Carob dataset.
 <div class="center-table">
-  <div style="text-align: center;">
-
 | Sites                   | N   | P  | K  |
 |-------------------------|-----|----|----|
 | Zaria                   | 155 | 60 | 25 |
@@ -69,6 +67,4 @@ The following is the sample fertilizer recommendation ouput for few locations fr
 | unknownSite456          | 170 | 15 | 25 |
 | unknownSite481          | 100 | 65 | 80 |
 | Umudike                 | 155 |  5 | 55 |
-
-  </div>
 </div>
