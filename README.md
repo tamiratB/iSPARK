@@ -29,7 +29,8 @@ To test this script, download the Carob dataset, extract it into the 'data' dire
 
 # Sample output
 The following is the sample fertilizer recommendation ouput for few locations from Carob dataset.
-<div style="text-align: center;">
+<div class="center-table">
+  <div style="text-align: center;">
 
 | Sites                   | N   | P  | K  |
 |-------------------------|-----|----|----|
@@ -69,4 +70,5 @@ The following is the sample fertilizer recommendation ouput for few locations fr
 | unknownSite481          | 100 | 65 | 80 |
 | Umudike                 | 155 |  5 | 55 |
 
+  </div>
 </div>
