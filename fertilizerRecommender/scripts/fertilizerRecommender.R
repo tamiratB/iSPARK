@@ -11,8 +11,8 @@ library(mice)
 library(reshape2)
 library(stringr)
 
-#----------- define working directory and environmental variable --------------
-
+#----------- define working directory and set environmental variable --------------
+# set working directory
 scriptDir <- dirname(rstudioapi::getActiveDocumentContext()$path)
 setwd(scriptDir)
 
