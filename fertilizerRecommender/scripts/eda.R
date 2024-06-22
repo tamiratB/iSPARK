@@ -1,5 +1,6 @@
 library(ggplot2)
 library(dplyr)
+library(leaflet)
 
 # ---------- visualize sites information and spatial distribution --------------
 

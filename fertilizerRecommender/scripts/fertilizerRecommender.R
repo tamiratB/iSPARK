@@ -4,15 +4,14 @@ gc() # clearing memory
 library(dplyr)
 #library(mgcv)
 #library(e1071)
-library(leaflet)
 #library(tidyr)
 library(randomForest)
 library(mice)
 library(reshape2)
 library(stringr)
 
-#----------- define working directory and set environmental variable --------------
-# set working directory
+#----------- define working directory and environmental variable --------------
+
 scriptDir <- dirname(rstudioapi::getActiveDocumentContext()$path)
 setwd(scriptDir)
 
@@ -219,11 +218,11 @@ for (i in 1:length(siteNames)){
         simulatedData$predictedYield <- predict(model, newdata = simulatedData)
         # find optimal N, P, and K rates for the specified region
         if (vars == "N_fertilizer"){
-          optimalN <- simulatedData$N_fertilizer[which.max(simulatedData$predictedYield)]
+            optimalN <- simulatedData$N_fertilizer[which.max(simulatedData$predictedYield)]
         }else if(vars == "P_fertilizer"){
-          optimalP <- simulatedData$P_fertilizer[which.max(simulatedData$predictedYield)]
+            optimalP <- simulatedData$P_fertilizer[which.max(simulatedData$predictedYield)]
         } else{
-          optimalK <- simulatedData$K_fertilizer[which.max(simulatedData$predictedYield)]
+            optimalK <- simulatedData$K_fertilizer[which.max(simulatedData$predictedYield)]
         }
     }
     # print out optimal NPK for the specified site
