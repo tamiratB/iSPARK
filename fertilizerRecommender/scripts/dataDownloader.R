@@ -89,9 +89,11 @@ if (dataDownload == TRUE){
     # number of days in each month (used to convert precipitation data into 'mm' of the season, it is given in 'mm/day' from NASA POWER)
     numDays <- c(MAY=31, JUN=30, JUL=31, AUG=31, SEP=30, OCT=31)
     print("Retrieving weather data...")
+
     # retrieve weather data
     for (i in 1:nrow(carobCleaned)) {
         cat(sprintf("Currently at row: %d of %d", i, nrow(carobCleaned)))
+
         # pick the current row year, latitude, longitude values
         rowValues <- carobCleaned[i, colValues]
         year <- rowValues[[1]]
@@ -109,6 +111,7 @@ if (dataDownload == TRUE){
         
         # calculate the row-wise average and add it as a new column (i.e., 'mean_t2m') for temperature data
         t2m$mean_t2m <- rowMeans(t2m[, season], na.rm = TRUE) 
+
         # calculate the row-wise weighted sum and add it as a new column (i.e., weightedSumPrec) for precipitation
         prec <- prec %>%
           rowwise() %>%
